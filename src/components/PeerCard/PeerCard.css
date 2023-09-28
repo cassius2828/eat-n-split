@@ -1,0 +1,41 @@
+.peer-card {
+display: flex;
+justify-content: space-between;
+align-items: center;
+width: 100%;
+}
+
+.peer-card:first-child {
+    border-radius: 4px 4px 0 0;
+}
+
+.peer-card button {
+    height: 3rem;
+    margin-right: 1rem;
+
+}
+
+.profile-container {
+    margin: 1rem;
+}
+.profile-container img {
+height: 4rem;
+    border-radius: 50%;
+width: 4rem;
+object-fit: cover;
+
+}
+
+.name-container {
+    display: flex;
+    flex-direction: column;
+    align-items: start;
+    width: 50%;
+}
+
+.name-container h3 {
+    font-size: 1.5rem;
+}
+.name-container span {
+    font-size: 1.3rem;
+}

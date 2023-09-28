@@ -1,6 +1,9 @@
 .App {
   display: flex;
-  /* flex-direction: column; */
+  /* change this back for production. I have this hear for smaller view */
+  flex-direction: column;
+  /* change this back for production. I have this hear for smaller view */
+
   justify-content: center;
   align-items: center;
   width: 100vw;
@@ -9,7 +12,31 @@
 
 
 .peer-container, .bill-total-container {
-  width: 33%;
+  height: 30vh;
+ 
+  /* change this back for production. I have this hear for smaller view */
+  /* width: 33% */
+  width: 50%;
+  /* change this back for production. I have this hear for smaller view */
+
   display: flex;
   flex-direction: column;
+  /* change this back for production. I have this hear for smaller view */
+/* was margin: 0 2rem */
+  margin: 10rem;
+  /* change this back for production. I have this hear for smaller view */
+
+}
+
+.peer-container {
+  align-items: end;
+}
+
+.bill-total-container {
+  padding: 1rem 2rem;  border-radius: 4px;
+}
+#close-btn {
+  width: 8rem;
+  padding: .5rem;
+ 
 }

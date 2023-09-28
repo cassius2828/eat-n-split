@@ -1,7 +1,9 @@
 import React from 'react'
-
-export const BillRow = () => {
+import './BillRow.css'
+export const BillRow = ({children}) => {
   return (
-    <div>billRow</div>
+    <div className='bill-row-container mt3 mb3'>
+      {children}
+    </div>
   )
 }
