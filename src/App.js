@@ -34,11 +34,21 @@ function App() {
   ];
   const [selectFriend, setSelectFriend] = useState(1);
   const [peers, setPeers] = useState(staticPeers);
+
   const [bill, setBill] = useState({
     totalBill: 0,
     myExpense: 0,
-    iPay: "you",
   });
+  // ? When I had 'whoPays' in the bill state object, I got an infinite loop error
+  // ? but when I made it an individual state, the error went away. I do not know why this is
+  const [whoPays, setWhoPays] = useState("you");
+  console.log(whoPays);
+
+  const [modal, setModal] = useState(false);
+
+  // by deriving peerBill like this it makes the input uncontrolled bc it is not being
+  // calculated by state, this is why it does not rerender to 0 when a new peer is selected
+  // BUT if I make it state and calculate it that way I will get the infinite loop issue
 
   let peerBill = bill.totalBill - bill.myExpense;
 
@@ -46,8 +56,9 @@ function App() {
     setSelectFriend(index);
     if (selectFriend === index) setSelectFriend(null);
   };
-
+  // working on passing state down as props to AddPeer component
   const onAddPeer = (peerName, peerPic) => {
+    if (!peerName || !peerPic) return;
     if (peerName && peerPic)
       setPeers([
         ...peers,
@@ -74,24 +85,64 @@ if the index does not match, i spread the obj to make sure it remains the same
 
 ! Calcs are decided based upon the who pays state, this state will be toggled in the select below
 */
+
+  useEffect(() => {
+    const splitBillBtn = document.getElementById("split-bill-btn");
+    if (bill.totalBill < bill.myExpense) {
+      splitBillBtn.classList.add("disabled");
+    }
+    if (
+      totalBill?.length > 0 &&
+      yourExpense?.length > 0 &&
+      bill.totalBill > bill.myExpense
+    ) {
+      splitBillBtn.classList.remove("disabled");
+    }
+  }, [bill.totalBill, bill.myExpense]);
+
+  const totalBill = document.getElementById("bill-value")?.value;
+  const yourExpense = document.getElementById("your-expense")?.value;
   const handleMoney = () => {
-    if (bill.iPay === "you")
-      setPeers(
-        peers.map((i, index) =>
-          index === selectFriend
-            ? Object.assign(i, { ...i, money: i.money + peerBill })
-            : { ...i }
-        )
-      );
+    // * these variables and first if statement prevents a total from being added
+    // * when a new peer is selected wihtout bill details being entered
+    // * BUT I still cannot reset the peer expense to 0 without making it state
+    // const totalBill = document.getElementById("bill-value").value;
+    // const yourExpense = document.getElementById("your-expense").value;
+    const splitBillBtn = document.getElementById("split-bill-btn");
+
+    if (!bill.totalBill && !bill.myExpense) return;
+
+    if (bill.totalBill < bill.myExpense) {
+      setModal(true);
+    }
+
+    if (
+      totalBill.length > 0 &&
+      yourExpense.length > 0 &&
+      bill.totalBill > bill.myExpense
+    ) {
+      splitBillBtn.classList.remove("disabled");
+      if (whoPays === "you") {
+        setPeers(
+          peers.map((i, index) =>
+            index === selectFriend
+              ? Object.assign(i, { ...i, money: i.money + peerBill })
+              : { ...i }
+          )
+        );
+      }
+
+      if (whoPays === "peer") {
+        setPeers(
+          peers.map((i, index) =>
+            index === selectFriend
+              ? Object.assign(i, { ...i, money: i.money - peerBill })
+              : { ...i }
+          )
+        );
+      }
+    }
   };
-  if (bill.iPay === "peer")
-    setPeers(
-      peers.map((i, index) =>
-        index === selectFriend
-          ? Object.assign(i, { ...i, money: i.money - peerBill })
-          : { ...i }
-      )
-    );
 
   // ! infinite loop caused by setting state with the conditional based on the onChange event
   // waiting for answer from forum to proceed here
@@ -109,6 +160,27 @@ if the index does not match, i spread the obj to make sure it remains the same
 
   return (
     <div className="App">
+      {/* ERROR MODAL */}
+      {modal && (
+        <div className="error-modal">
+          <div>
+            <h1>Invalid Value Entered</h1>{" "}
+            <span
+              onClick={() => setModal(false)}
+              style={{ cursor: "pointer" }}
+              className="fw6 orange ma3"
+            >
+              X
+            </span>
+          </div>
+          <p>
+            Your expense cannot be larger than the bill value. Please resubmit
+            with valid values
+          </p>
+        </div>
+      )}
+      {/* ERROR MODAL */}
+
       <div className="peer-container">
         {peers.map((i, index) => {
           return (
@@ -165,17 +237,19 @@ if the index does not match, i spread the obj to make sure it remains the same
                 </BillRow>
                 <BillRow>
                   <span>{i.name}'s Expense</span>
-                  <input value={peerBill} type="text" id="thier-expense" />
+                  <input value={peerBill} type="text" id="their-expense" />
                 </BillRow>
                 <BillRow>
                   {/* !!! THIS IS THE PROBLEM AREA !!! */}
+
+                  {/*  */}
                   <span>Who is paying the bill?</span>
                   <select
-                    name={bill.iPay}
-                    value={bill.iPay}
+                    name={whoPays}
+                    value={whoPays}
                     onChange={(e) =>
                       // console.log(e.target.value)
-                      setBill({ ...bill, iPay: e.target.value })
+                      setWhoPays(e.target.value)
                     }
                     style={{ cursor: "pointer" }}
                     id="who-pays"
@@ -184,10 +258,15 @@ if the index does not match, i spread the obj to make sure it remains the same
                     <option value="you">You</option>
                     <option value="peer">{i.name}</option>
                   </select>
-                 
                 </BillRow>
                 <div className="split-bill-container">
-                  <button onClick={handleMoney}>Split Bill</button>
+                  <button
+                    className="disabled"
+                    id="split-bill-btn"
+                    onClick={handleMoney}
+                  >
+                    Split Bill
+                  </button>
                 </div>
               </>
             );
@@ -203,8 +282,6 @@ if the index does not match, i spread the obj to make sure it remains the same
 }
 
 export default App;
-
-
 
 /*
 if I pay the bill, I add to sarah money from sarah expense
