@@ -1,11 +1,10 @@
 import React from "react";
 import "./PeerCard.css";
 
-export const PeerCard = ({ name, profilePic, money, selected, index, handleSelectPeer }) => {
+export const PeerCard = ({ name, profilePic, money,  index, selected, handleSelectFriend }) => {
   return (
     <div
-      style={{
-        backgroundColor: index % 2 === 0 ? "whitesmoke" : "antiquewhite",
+      style={{ backgroundColor: selected === index && "whitesmoke"
       }}
       className="peer-card"
     >
@@ -26,7 +25,7 @@ export const PeerCard = ({ name, profilePic, money, selected, index, handleSelec
           </span>
         )}
       </div>
-      <button onClick={handleSelectPeer} >{selected ? "close" : "select"}</button>
+      <button onClick={() => handleSelectFriend(index)} >{selected === index ? "close" : "select"}</button>
     </div>
   );
 };

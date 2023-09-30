@@ -32,28 +32,80 @@ function App() {
         "https://images.squarespace-cdn.com/content/v1/54693b1ee4b07c8a3da7b6d0/1492201646122-7CCYPRAF33QU2MGPW8YJ/Headshot-by-Lamonte-G-Photography-Baltimore-Corporate-Headshot-Photographer-IMG_6763-Edit.JPG?format=1500w",
     },
   ];
+  const [selectFriend, setSelectFriend] = useState(1);
   const [peers, setPeers] = useState(staticPeers);
   const [bill, setBill] = useState({
     totalBill: 0,
     myExpense: 0,
+    iPay: "you",
   });
 
   let peerBill = bill.totalBill - bill.myExpense;
 
-  const onSelectPeer = () => {
-   setPeers([...peers, {
-     selected: false
-   }])
-  }
+  const onSelectFriend = (index) => {
+    setSelectFriend(index);
+    if (selectFriend === index) setSelectFriend(null);
+  };
 
   const onAddPeer = (peerName, peerPic) => {
-    setPeers([
-      ...peers,
-      {
-        name: peerName, money: 0, selected: false, profilePic: peerPic,
-      }
-    ])
-  }
+    if (peerName && peerPic)
+      setPeers([
+        ...peers,
+        {
+          name: peerName,
+          money: 0,
+          selected: false,
+          profilePic: peerPic,
+        },
+      ]);
+  };
+  // using Object.assign to modify the money state of the selected Friend
+  // now I must figure out how to use the bill state to effectively calculate the balance for the peer
+
+  // For my understanding, I will list out what this function does :P
+  /*
+1. when I set the state, I am first looping through the objects in the current state
+2. I am comparing the index of the obj to the selectFriend state
+this allows me to access the obj that belongs to the selectedFriend
+3. Using Object.assign if it is true, I take the obj (i),
+then to modify the obj I spread the contents and add the money key with the new value
+if the index does not match, i spread the obj to make sure it remains the same
+? do I need to spread the contents into an array first? It seems to currently work as desired 
+
+! Calcs are decided based upon the who pays state, this state will be toggled in the select below
+*/
+  const handleMoney = () => {
+    if (bill.iPay === "you")
+      setPeers(
+        peers.map((i, index) =>
+          index === selectFriend
+            ? Object.assign(i, { ...i, money: i.money + peerBill })
+            : { ...i }
+        )
+      );
+  };
+  if (bill.iPay === "peer")
+    setPeers(
+      peers.map((i, index) =>
+        index === selectFriend
+          ? Object.assign(i, { ...i, money: i.money - peerBill })
+          : { ...i }
+      )
+    );
+
+  // ! infinite loop caused by setting state with the conditional based on the onChange event
+  // waiting for answer from forum to proceed here
+  // const handleWhoPays = (e, id) => {
+  //   const selectTag = document.getElementById(id);
+
+  //   if(selectTag.value === )
+  //   setBill({...bill, iPay: e.target.value})
+
+  // };
+  // this ensures it runs on the first render so we know how to calculate the money later
+  // useEffect(() => {
+  //   handleWhoPays();
+  // }, []);
 
   return (
     <div className="App">
@@ -61,27 +113,27 @@ function App() {
         {peers.map((i, index) => {
           return (
             <PeerCard
-              handleSelectPeer={onSelectPeer}
+              // key={index}
+              handleSelectFriend={onSelectFriend}
               peers={peers}
               index={index}
               name={i.name}
               money={i.money}
-              selected={i.selected}
+              selected={selectFriend}
               profilePic={i.profilePic}
             />
           );
         })}
 
-        <AddPeer
-        handleAddPeer={onAddPeer}
-        />
+        <AddPeer handleAddPeer={onAddPeer} />
         <button className="mt4" id="close-btn">
           Close
         </button>
       </div>
       <div className="bill-total-container">
-        {peers.map((i) => {
-          if (i.selected)
+        {peers.map((i, index) => {
+          // this will likely change
+          if (index === selectFriend)
             return (
               <>
                 <h1 className="mt3 mb3">Split a bill with {i.name}</h1>
@@ -116,24 +168,50 @@ function App() {
                   <input value={peerBill} type="text" id="thier-expense" />
                 </BillRow>
                 <BillRow>
+                  {/* !!! THIS IS THE PROBLEM AREA !!! */}
                   <span>Who is paying the bill?</span>
-                  <select style={{ cursor: "pointer" }} id="who-pays">
+                  <select
+                    name={bill.iPay}
+                    value={bill.iPay}
+                    onChange={(e) =>
+                      // console.log(e.target.value)
+                      setBill({ ...bill, iPay: e.target.value })
+                    }
+                    style={{ cursor: "pointer" }}
+                    id="who-pays"
+                  >
+                    {/* <option ></option> */}
                     <option value="you">You</option>
                     <option value="peer">{i.name}</option>
                   </select>
+                 
                 </BillRow>
                 <div className="split-bill-container">
-                  <button>Split Bill</button>
+                  <button onClick={handleMoney}>Split Bill</button>
                 </div>
               </>
             );
         })}
+        {selectFriend === null && (
+          <h1 style={{ textAlign: "center" }}>
+            Select a Friend to Split the Bill With!
+          </h1>
+        )}
       </div>
     </div>
   );
 }
 
 export default App;
+
+
+
+/*
+if I pay the bill, I add to sarah money from sarah expense
+if sarah pays the bill, i subtract sara money from my expense
+
+
+*/
 
 /*
 State Needed

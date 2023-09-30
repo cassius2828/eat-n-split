@@ -3,6 +3,11 @@ display: flex;
 justify-content: space-between;
 align-items: center;
 width: 100%;
+background-color: antiquewhite;
+}
+
+.peer-card:hover {
+    background-color: whitesmoke;
 }
 
 .peer-card:first-child {
