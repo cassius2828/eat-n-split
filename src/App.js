@@ -3,7 +3,7 @@ import "./App.css";
 import { PeerCard } from "./components/PeerCard/PeerCard";
 import { BillRow } from "./components/BillRow/BillRow";
 import { AddPeer } from "./components/AddPeer/AddPeer";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 function App() {
   const staticPeers = [
@@ -34,6 +34,7 @@ function App() {
   ];
   const [selectFriend, setSelectFriend] = useState(1);
   const [peers, setPeers] = useState(staticPeers);
+  const [disabled, setDisabled] = useState(true);
 
   const [bill, setBill] = useState({
     totalBill: 0,
@@ -85,30 +86,27 @@ if the index does not match, i spread the obj to make sure it remains the same
 
 ! Calcs are decided based upon the who pays state, this state will be toggled in the select below
 */
-
+  //* useEffect seems like the only way I can keep the logic up to date, useRefs and onChange functions are all one step behind
   useEffect(() => {
-    const splitBillBtn = document.getElementById("split-bill-btn");
     if (bill.totalBill < bill.myExpense) {
-      splitBillBtn.classList.add("disabled");
+      setDisabled(true);
     }
     if (
-      totalBill?.length > 0 &&
-      yourExpense?.length > 0 &&
+      totalBill.current.value.length > 0 &&
+      yourExpense.current.value.length > 0 &&
       bill.totalBill > bill.myExpense
     ) {
-      splitBillBtn.classList.remove("disabled");
+      setDisabled(false);
     }
   }, [bill.totalBill, bill.myExpense]);
 
-  const totalBill = document.getElementById("bill-value")?.value;
-  const yourExpense = document.getElementById("your-expense")?.value;
+  const totalBill = useRef(null);
+  const yourExpense = useRef(null);
+
   const handleMoney = () => {
-    // * these variables and first if statement prevents a total from being added
+    // * if statement prevents a total from being added
     // * when a new peer is selected wihtout bill details being entered
     // * BUT I still cannot reset the peer expense to 0 without making it state
-    // const totalBill = document.getElementById("bill-value").value;
-    // const yourExpense = document.getElementById("your-expense").value;
-    const splitBillBtn = document.getElementById("split-bill-btn");
 
     if (!bill.totalBill && !bill.myExpense) return;
 
@@ -117,11 +115,11 @@ if the index does not match, i spread the obj to make sure it remains the same
     }
 
     if (
-      totalBill.length > 0 &&
-      yourExpense.length > 0 &&
+      totalBill.current.value.length > 0 &&
+      yourExpense.current.value.length > 0 &&
       bill.totalBill > bill.myExpense
     ) {
-      splitBillBtn.classList.remove("disabled");
+      setDisabled(false);
       if (whoPays === "you") {
         setPeers(
           peers.map((i, index) =>
@@ -145,18 +143,6 @@ if the index does not match, i spread the obj to make sure it remains the same
   };
 
   // ! infinite loop caused by setting state with the conditional based on the onChange event
-  // waiting for answer from forum to proceed here
-  // const handleWhoPays = (e, id) => {
-  //   const selectTag = document.getElementById(id);
-
-  //   if(selectTag.value === )
-  //   setBill({...bill, iPay: e.target.value})
-
-  // };
-  // this ensures it runs on the first render so we know how to calculate the money later
-  // useEffect(() => {
-  //   handleWhoPays();
-  // }, []);
 
   return (
     <div className="App">
@@ -174,8 +160,8 @@ if the index does not match, i spread the obj to make sure it remains the same
             </span>
           </div>
           <p>
-            Your expense cannot be larger than the bill value. Please resubmit
-            with valid values
+            Your expense cannot be greater than or equal to the bill value.
+            Please resubmit with valid values
           </p>
         </div>
       )}
@@ -212,6 +198,7 @@ if the index does not match, i spread the obj to make sure it remains the same
                 <BillRow>
                   <span>Bill value</span>
                   <input
+                    ref={totalBill}
                     onChange={(e) =>
                       setBill({
                         ...bill,
@@ -225,6 +212,7 @@ if the index does not match, i spread the obj to make sure it remains the same
                 <BillRow>
                   <span>Your Expense</span>
                   <input
+                    ref={yourExpense}
                     onChange={(e) =>
                       setBill({
                         ...bill,
@@ -261,7 +249,7 @@ if the index does not match, i spread the obj to make sure it remains the same
                 </BillRow>
                 <div className="split-bill-container">
                   <button
-                    className="disabled"
+                    className={disabled && "disabled"}
                     id="split-bill-btn"
                     onClick={handleMoney}
                   >
